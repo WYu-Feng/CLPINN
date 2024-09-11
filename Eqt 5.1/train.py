@@ -76,9 +76,8 @@ opts.description = FMT.format(**opts.__dict__)
 
 
 
-def oracle(x, y, g1, g2, eps=opts.eps):
-    return -eps * g2  - (2 - x) * g1 + y
-
+def oracle(x, g1, g2, eps=opts.eps):
+    return -eps * g2 - (2 - x) * g1
 
 @timemeter("Setup")
 def load_cfg() -> Tuple[Config, str]:
@@ -224,7 +223,7 @@ def visual(
         g1 = g1.to(device)
         g2 = g2.to(device)
 
-        target = oracle(x, y, g1, g2)
+        target = oracle(x, g1, g2)
         x.requires_grad_(True)
         y_pred = model(x)
         g1_pred = torch.autograd.grad(
@@ -238,7 +237,7 @@ def visual(
             retain_graph=False
         )[0]
         x.requires_grad_(False)
-        pred = oracle(x, y_pred, g1_pred, g2_pred)
+        pred = oracle(x, g1_pred, g2_pred)
         loss = loss_func(pred, target)
 
         loss_meter.update(loss.item(), x.size(0), mode="mean")
